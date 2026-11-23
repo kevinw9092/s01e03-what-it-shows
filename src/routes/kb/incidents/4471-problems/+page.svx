@@ -14,13 +14,13 @@ signature: kevinw9092
   import RenderStamp from '#lib/kb/RenderStamp.svelte';
 </script>
 
-[#4471](/kb/incidents/4471) is marked known: one issue, one fix queued. Read report by report, it
-is not one issue. The fix queued for the parser will not fix the booking-v3 form, and neither
-fix touches the reports where a date moved by one day.
+[#4471](/kb/incidents/4471) was merged as one issue and is now closed. Read report by report, it
+was more than one issue. Engineering fixed the parser and retired the booking-v3 form. Neither
+change touches the reports where a date moved by one day, and nobody owns those yet.
 
 <Callout kind="warn">
-#4471 is more than one bug. Each problem below has its own ticket. Closing #4471 when the parser
-fix ships leaves the others open.
+#4471 is closed, but not every problem in it is. Before you tell a tenant their date bug is
+fixed, check which problem their report belongs to.
 </Callout>
 
 ## The problems
@@ -38,16 +38,18 @@ fix ships leaves the others open.
 
 - **`parser`**: the tenant writes dates day first (every tenant on file does, `en-GB` and
   `en-IE` included) and the report came in by app, by email, or through a booking-v2 form. The
-  shared parser reads the date month first, so day and month swap: 4 July becomes 7 April.
+  shared parser read the date month first, so day and month swapped: 4 July became 7 April.
+  Fixed: the parser now reads day-first dates for these locales.
 - **`hint`**: the report came through the booking form on a **booking-v3** tenant. That form
-  prints `MM/DD/YYYY` under its date field. People type what it shows, month first; the form
-  reads the date the tenant's way, day first. The result looks like the parser bug, so it got
-  merged with it, but the fix is in the form, not the parser.
+  printed `MM/DD/YYYY` under its date field. People typed what it showed, month first; the form
+  read the date the tenant's way, day first. It looked like the parser bug, so it got merged
+  with it, but the parser fix does not cover it. Won't fix: the booking-v3 form is retired, so
+  no new bookings come through it. Bookings already made through it keep their swapped dates.
 - **`shift`**: the date is one day off, not swapped. An invite one day early, every June booking
   a day off, an invite that arrived before the booking was made, a guest in Lisbon and a guest
   in Toronto shown different days for one meeting. Day/month order cannot do that; a time zone
-  or offset can. The desk already noted these reports as a one-day move, then filed them under
-  the tenant's cause.
+  or offset can. The desk noted these reports as a one-day move, then filed them under the
+  tenant's cause, so the parser fix closed them with #4471. They are still open.
 
 Ignore the intake tag when you sort these. It is guessed from the reporter's browser locale, not
 from the tenant, and it disagrees with the tenant on many reports in this ticket.
@@ -62,10 +64,12 @@ incident page shows already splits out `hint`, but labels it "no ticket of its o
 
 ## What to do
 
-1. Keep #4471 for `parser` only. Track `hint` and `shift` in their own tickets (linked above).
-2. Ship the booking-v3 fix with the parser fix: the hint has to match how the form reads the
-   date, or `hint` reports keep coming after the parser is fixed.
-3. Treat `shift` as its own investigation (time zones, offsets, the June-only pattern).
+1. A new `shift` report (one day off, not swapped) is not #4471. File it under the `shift`
+   ticket linked above, which stays open until someone owns the time-zone handling.
+2. A new day/month swap from a day-first tenant after the parser fix is a regression: open a new
+   ticket, do not reopen #4471.
+3. Tenants that booked through booking-v3 may still hold swapped dates. Tell them to check
+   bookings made before the form was retired.
 4. Replace decision 0001 with a new record: match on cause (tenant, channel, form), not subject.
 
 <RenderStamp {signature} />
