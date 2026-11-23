@@ -34,3 +34,17 @@ Support desk. Decision records: whoever signed them.
 ---
 
 Exported 2026-10-04 from the `support` repo, `apps/kb/` → `src/`.
+
+## Building it
+
+The export ships `src/` only. `package.json`, `svelte.config.js`, `vite.config.js`, `src/app.html`
+and `src/routes/+layout.js` are a minimal SvelteKit 2 + mdsvex frame that renders every page to
+static HTML:
+
+```
+npm install
+npm run render     # build/ and a copy of the pages in rendered/
+```
+
+`rendered/kb/incidents/4471-problems.html` is the page about #4471 as the desk will see it;
+its source is `src/routes/kb/incidents/4471-problems/+page.svx`.

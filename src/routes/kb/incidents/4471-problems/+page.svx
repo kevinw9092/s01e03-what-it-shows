@@ -1,0 +1,71 @@
+---
+layout: runbook
+title: '#4471 · what the reports show'
+owner: kevinw9092
+status: open
+reviewed: 2026-11-23
+signature: kevinw9092
+---
+
+<script>
+  import ProblemTable from '#lib/kb/ProblemTable.svelte';
+  import CauseTable from '#lib/kb/CauseTable.svelte';
+  import Callout from '#lib/kb/Callout.svelte';
+  import RenderStamp from '#lib/kb/RenderStamp.svelte';
+</script>
+
+[#4471](/kb/incidents/4471) is marked known: one issue, one fix queued. Read report by report, it
+is not one issue. The fix queued for the parser will not fix the booking-v3 form, and neither
+fix touches the reports where a date moved by one day.
+
+<Callout kind="warn">
+#4471 is more than one bug. Each problem below has its own ticket. Closing #4471 when the parser
+fix ships leaves the others open.
+</Callout>
+
+## The problems
+
+<ProblemTable
+  ticket={4471}
+  issues={{
+    parser: 'https://github.com/kevinw9092/s01e03-what-it-shows/issues/1',
+    hint: 'https://github.com/kevinw9092/s01e03-what-it-shows/issues/2',
+    shift: 'https://github.com/kevinw9092/s01e03-what-it-shows/issues/3',
+  }}
+/>
+
+## How to tell them apart
+
+- **`parser`**: the tenant writes dates day first (every tenant on file does, `en-GB` and
+  `en-IE` included) and the report came in by app, by email, or through a booking-v2 form. The
+  shared parser reads the date month first, so day and month swap: 4 July becomes 7 April.
+- **`hint`**: the report came through the booking form on a **booking-v3** tenant. That form
+  prints `MM/DD/YYYY` under its date field. People type what it shows, month first; the form
+  reads the date the tenant's way, day first. The result looks like the parser bug, so it got
+  merged with it, but the fix is in the form, not the parser.
+- **`shift`**: the date is one day off, not swapped. An invite one day early, every June booking
+  a day off, an invite that arrived before the booking was made, a guest in Lisbon and a guest
+  in Toronto shown different days for one meeting. Day/month order cannot do that; a time zone
+  or offset can. The desk already noted these reports as a one-day move, then filed them under
+  the tenant's cause.
+
+Ignore the intake tag when you sort these. It is guessed from the reporter's browser locale, not
+from the tenant, and it disagrees with the tenant on many reports in this ticket.
+
+## Why one ticket
+
+Reports were merged on matching subject lines ([decision 0001](/kb/decisions/0001-dedupe-by-subject)).
+Subjects like "Date is wrong" fit all three bugs, so all three ended up here. The table the
+incident page shows already splits out `hint`, but labels it "no ticket of its own":
+
+<CauseTable ticket={4471} />
+
+## What to do
+
+1. Keep #4471 for `parser` only. Track `hint` and `shift` in their own tickets (linked above).
+2. Ship the booking-v3 fix with the parser fix: the hint has to match how the form reads the
+   date, or `hint` reports keep coming after the parser is fixed.
+3. Treat `shift` as its own investigation (time zones, offsets, the June-only pattern).
+4. Replace decision 0001 with a new record: match on cause (tenant, channel, form), not subject.
+
+<RenderStamp {signature} />
